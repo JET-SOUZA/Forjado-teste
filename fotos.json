@@ -1,0 +1,12 @@
+[
+  {
+    "src": "Forjados/fotos/teste1.jpg",
+    "thumb": "Forjados/thumbs/teste1.jpg",
+    "alt": "teste1.jpg"
+  },
+  {
+    "src": "Forjados/fotos/teste2.jpg",
+    "thumb": "Forjados/thumbs/teste2.jpg",
+    "alt": "teste2.jpg"
+  }
+]
