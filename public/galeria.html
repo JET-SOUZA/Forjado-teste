@@ -139,19 +139,21 @@
     }
 
     function montarGaleria(lista){
-      gallery.innerHTML='';
-      lista.forEach(item=>{
-        const img = document.createElement('img');
-        const src = item.arquivo.startsWith('/') ? item.arquivo : `/fotos/${item.arquivo}`;
-        img.src = src;
-        img.alt = item.alt || '';
-        img.dataset.full = src;
-        img.addEventListener('click', ()=> abrirModal(src));
-        gallery.appendChild(img);
-      });
-      allImages = [...gallery.querySelectorAll('img')];
-      console.log('Galeria montada com', allImages.length, 'imagens');
-    }
+  gallery.innerHTML = '';
+  lista.forEach(item => {
+    if (!item.src) return; // evita erro se o JSON estiver incorreto
+    const img = document.createElement('img');
+    const thumb = item.thumb.startsWith('/') ? item.thumb : `/${item.thumb}`;
+    const src = item.src.startsWith('/') ? item.src : `/${item.src}`;
+    img.src = thumb;
+    img.dataset.full = src;
+    img.alt = item.alt || '';
+    img.addEventListener('click', ()=> abrirModal(src));
+    gallery.appendChild(img);
+  });
+  allImages = [...gallery.querySelectorAll('img')];
+  console.log('Galeria montada com', allImages.length, 'imagens');
+}
 
     function abrirModal(src){ modalImg.src = src; modal.style.display='flex'; }
     modal.addEventListener('click', ()=> modal.style.display='none');
