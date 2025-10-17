@@ -1,125 +1,30 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Galeria de Teste — Forjados</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 20px;
-    }
-
-    h1 { margin-bottom: 10px; }
-
-    #buttons { margin-bottom: 20px; }
-
-    button {
-      margin-right: 10px;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      background: #222;
-      color: #fff;
-      font-size: 15px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover { background: #444; }
-
-    #gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 10px;
-    }
-
-    #gallery img {
-      width: 100%;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-      object-fit: cover;
-    }
-
-    #gallery img:hover {
-      transform: scale(1.05);
-      opacity: 0.9;
-    }
-
-    #modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    #modal img {
-      max-width: 90%;
-      max-height: 90%;
-      border-radius: 10px;
-    }
-
-    #loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background: #000;
-      color: #fff;
-      font-size: 18px;
-      font-weight: bold;
-      position: fixed;
-      inset: 0;
-      z-index: 2000;
-    }
-
-    #loading-bar {
-      width: 60%;
-      height: 10px;
-      background: #333;
-      border-radius: 5px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-
-    #loading-progress {
-      height: 10px;
-      background: deepskyblue;
-      width: 0%;
-      transition: width 0.3s;
-    }
-
-    #cameraContainer {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    video {
-      width: 300px;
-      border-radius: 10px;
-      margin-bottom: 10px;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Galeria de Teste — Forjados</title>
+<style>
+  body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:20px}
+  h1{margin-bottom:10px}
+  #buttons{margin-bottom:20px}
+  button{margin-right:10px;padding:10px 16px;border:none;border-radius:8px;background:#222;color:#fff;cursor:pointer}
+  button:hover{background:#444}
+  #gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+  #gallery img{width:100%;border-radius:8px;object-fit:cover;cursor:pointer;transition:transform .2s}
+  #gallery img:hover{transform:scale(1.04)}
+  #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);justify-content:center;align-items:center;z-index:1000}
+  #modal img{max-width:90%;max-height:90%;border-radius:10px}
+  #loading-container{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#000;color:#fff;font-weight:bold;position:fixed;inset:0;z-index:2000}
+  #cameraContainer{display:none;flex-direction:column;align-items:center;margin-bottom:20px}
+  video{width:320px;border-radius:10px;margin-bottom:10px}
+  #status{margin-top:10px;color:#333;font-weight:bold}
+</style>
 </head>
-
 <body>
-  <div id="loading-container">
-    Carregando modelos faciais...
-    <div id="loading-bar"><div id="loading-progress"></div></div>
-  </div>
+  <div id="loading-container">Carregando modelos faciais...<div style="width:60%;height:10px;background:#333;border-radius:5px;margin-top:10px"><div id="loading-progress" style="height:10px;background:deepskyblue;width:0%"></div></div></div>
 
   <h1>Galeria de Teste — Forjados</h1>
-
   <div id="buttons">
     <button id="btnSelfie">📸 Tirar selfie</button>
     <button id="btnUpload">🖼️ Enviar imagem</button>
@@ -128,20 +33,22 @@
 
   <div id="cameraContainer">
     <video id="video" autoplay muted></video>
-    <button id="btnCapturar">📷 Capturar</button>
+    <div>
+      <button id="btnCapturar">📷 Capturar</button>
+      <button id="btnCancelarCamera" style="background:#555">✖ Cancelar</button>
+    </div>
   </div>
 
+  <div id="status" aria-live="polite"></div>
   <div id="gallery"></div>
-
-  <div id="modal">
-    <img id="modalImg" src="" alt="">
-  </div>
-
+  <div id="modal"><img id="modalImg" src="" alt=""></div>
   <input type="file" id="fileInput" accept="image/*" style="display:none">
 
   <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
   <script>
+  (async ()=> {
+
     const gallery = document.getElementById('gallery');
     const modal = document.getElementById('modal');
     const modalImg = document.getElementById('modalImg');
@@ -152,122 +59,184 @@
     const cameraContainer = document.getElementById('cameraContainer');
     const video = document.getElementById('video');
     const btnCapturar = document.getElementById('btnCapturar');
+    const btnCancelarCamera = document.getElementById('btnCancelarCamera');
     const loadingContainer = document.getElementById('loading-container');
     const loadingProgress = document.getElementById('loading-progress');
+    const statusEl = document.getElementById('status');
 
     let allImages = [];
+    let modelsLoaded = false;
 
-    async function carregarModelos() {
-      const MODEL_URL = './models';
-      const total = 3;
-      let carregados = 0;
-
-      const atualizar = () => {
-        carregados++;
-        loadingProgress.style.width = `${(carregados / total) * 100}%`;
-      };
-
-      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL).then(atualizar);
-      await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL).then(atualizar);
-      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL).then(atualizar);
-
-      loadingContainer.style.display = 'none';
+    function logStatus(msg){
+      console.log(msg);
+      statusEl.textContent = msg;
     }
 
-    async function carregarFotos() {
-      const resposta = await fetch('./fotos.json');
-      const lista = await resposta.json();
-      montarGaleria(lista);
+    // Carrega modelos com feedback
+    async function carregarModelos(){
+      try {
+        const MODEL_URL = './models';
+        const models = [
+          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+        ];
+        let i=0;
+        const upd = ()=>{ i++; loadingProgress.style.width = `${(i/models.length)*100}%`; };
+        for(const m of models){ await m; upd(); console.log('modelo carregado'); }
+        modelsLoaded = true;
+        loadingContainer.style.display='none';
+        logStatus('Modelos carregados.');
+      } catch(err){
+        console.error('Erro ao carregar modelos:', err);
+        alert('Erro ao carregar modelos. Verifique se a pasta /models está presente no deploy e acessível.');
+      }
     }
 
-    function montarGaleria(lista) {
-      gallery.innerHTML = '';
-      lista.forEach(item => {
+    // Carregar fotos e montar galeria
+    async function carregarFotos(){
+      try{
+        const r = await fetch('./fotos.json');
+        const lista = await r.json();
+        montarGaleria(lista);
+        console.log('fotos.json carregado:', lista.length, 'itens');
+      }catch(err){
+        console.error('Falha ao carregar fotos.json:', err);
+        alert('Erro ao carregar fotos.json (verifique caminho/perm. e se o arquivo existe no deploy).');
+      }
+    }
+
+    function montarGaleria(lista){
+      gallery.innerHTML='';
+      lista.forEach(item=>{
         const img = document.createElement('img');
-        img.src = item.thumb.startsWith('/') ? item.thumb : `/${item.thumb}`;
-        img.dataset.full = item.src.startsWith('/') ? item.src : `/${item.src}`;
+        const thumb = item.thumb.startsWith('/') ? item.thumb : `/${item.thumb}`;
+        const src = item.src.startsWith('/') ? item.src : `/${item.src}`;
+        img.src = thumb;
+        img.dataset.full = src;
         img.alt = item.alt || '';
-        img.addEventListener('click', () => abrirModal(img.dataset.full));
+        img.addEventListener('click', ()=> abrirModal(img.dataset.full));
         gallery.appendChild(img);
       });
       allImages = [...gallery.querySelectorAll('img')];
+      console.log('Galeria montada com', allImages.length, 'imagens');
     }
 
-    function abrirModal(src) {
-      modalImg.src = src;
-      modal.style.display = 'flex';
-    }
-    modal.addEventListener('click', () => modal.style.display = 'none');
+    function abrirModal(src){ modalImg.src = src; modal.style.display='flex'; }
+    modal.addEventListener('click', ()=> modal.style.display='none');
 
-    async function processarSelfie(img) {
-      const det = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
-        .withFaceLandmarks(true).withFaceDescriptor();
-      if (!det) return alert('Nenhum rosto detectado!');
+    // Função de debug e processamento
+    async function processarSelfie(img){
+      if(!modelsLoaded){ alert('Modelos ainda não carregados. Aguarde...'); return; }
+      try {
+        logStatus('Processando imagem...');
+        console.log('Image natural size:', img.naturalWidth, img.naturalHeight, 'video size fallback', video.videoWidth, video.videoHeight);
 
-      const resultados = [];
-      const limite = 0.5;
+        // opções mais sensíveis para tiny detector
+        const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.35 });
 
-      for (const imagem of allImages) {
-        const imgEl = await faceapi.fetchImage(imagem.dataset.full);
-        const det2 = await faceapi.detectSingleFace(imgEl, new faceapi.TinyFaceDetectorOptions())
-          .withFaceLandmarks(true).withFaceDescriptor();
+        const det = await faceapi.detectSingleFace(img, options).withFaceLandmarks(true).withFaceDescriptor();
+        console.log('det:', det);
+        if(!det){ alert('Nenhum rosto detectado! (verifique iluminação/ângulo)'); logStatus('Nenhum rosto detectado'); return; }
 
-        if (det2) {
-          const dist = faceapi.euclideanDistance(det.descriptor, det2.descriptor);
-          if (dist < limite) resultados.push(imagem);
+        // informa descriptor length
+        console.log('Descriptor length:', det.descriptor.length);
+        logStatus('Rosto detectado. Comparando com galeria...');
+
+        const limite = 0.55; // ajuste fino
+        const resultados = [];
+
+        for(const imagem of allImages){
+          try {
+            const imgEl = await faceapi.fetchImage(imagem.dataset.full);
+            console.log('Processando imagem da galeria, size:', imgEl.naturalWidth, imgEl.naturalHeight, imagem.dataset.full);
+            const det2 = await faceapi.detectSingleFace(imgEl, options).withFaceLandmarks(true).withFaceDescriptor();
+            console.log('det2 for', imagem.dataset.full, det2 && true);
+            if(det2){
+              const dist = faceapi.euclideanDistance(det.descriptor, det2.descriptor);
+              console.log('dist to', imagem.dataset.full, dist);
+              if(dist < limite) resultados.push({el:imagem, dist});
+            }
+          } catch(innerErr){
+            console.warn('Erro processando imagem da galeria:', imagem.dataset.full, innerErr);
+          }
         }
-      }
 
-      gallery.innerHTML = '';
-      resultados.forEach(img => gallery.appendChild(img));
-      if (!resultados.length) alert('Nenhuma correspondência encontrada.');
+        // ordena por distância (menor = mais parecido)
+        resultados.sort((a,b)=>a.dist - b.dist);
+
+        if(resultados.length){
+          gallery.innerHTML='';
+          resultados.forEach(r => gallery.appendChild(r.el));
+          logStatus(`Encontrado(s) ${resultados.length} correspondência(s).`);
+        } else {
+          alert('Nenhuma correspondência encontrada.');
+          logStatus('Nenhuma correspondência encontrada.');
+        }
+      } catch(err){
+        console.error('Erro no processamento da selfie:', err);
+        alert('Erro durante a detecção (veja console).');
+      }
     }
 
-    // Upload de arquivo (corrigido)
-    btnUpload.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', async e => {
+    // Upload de arquivo: cria <img> via URL.createObjectURL
+    btnUpload.addEventListener('click', ()=> fileInput.click());
+    fileInput.addEventListener('change', async e=>{
       const file = e.target.files[0];
-      if (!file) return;
-
+      if(!file) return;
       const img = new Image();
       img.src = URL.createObjectURL(file);
-
-      img.onload = async () => {
+      img.onload = async ()=>{
+        console.log('Upload image loaded:', img.naturalWidth, img.naturalHeight);
         await processarSelfie(img);
         URL.revokeObjectURL(img.src);
       };
+      img.onerror = ()=> alert('Erro ao carregar imagem do arquivo.');
     });
 
-    // Abertura da câmera
-    btnSelfie.addEventListener('click', async () => {
-      cameraContainer.style.display = 'flex';
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      video.srcObject = stream;
+    // Câmera
+    let currentStream = null;
+    btnSelfie.addEventListener('click', async ()=>{
+      try {
+        cameraContainer.style.display='flex';
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio:false });
+        currentStream = stream;
+        video.srcObject = stream;
+      } catch(err){
+        console.error('Erro ao abrir câmera:', err);
+        alert('Não foi possível acessar a câmera.');
+      }
     });
 
-    // Captura de imagem (corrigido)
-    btnCapturar.addEventListener('click', async () => {
+    btnCancelarCamera.addEventListener('click', ()=>{
+      cameraContainer.style.display='none';
+      if(currentStream) currentStream.getTracks().forEach(t=>t.stop());
+    });
+
+    btnCapturar.addEventListener('click', async ()=>{
+      if(!video.videoWidth || !video.videoHeight){ alert('Aguardando câmera...'); return; }
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-
+      canvas.getContext('2d').drawImage(video,0,0);
       const img = new Image();
       img.src = canvas.toDataURL('image/png');
-
-      img.onload = async () => {
+      img.onload = async ()=>{
         await processarSelfie(img);
-        cameraContainer.style.display = 'none';
-        video.srcObject.getTracks().forEach(t => t.stop());
+        cameraContainer.style.display='none';
+        if(currentStream) currentStream.getTracks().forEach(t=>t.stop());
       };
+      img.onerror = ()=> alert('Erro ao processar captura da câmera.');
     });
 
     btnMostrarTodas.addEventListener('click', carregarFotos);
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      await carregarModelos();
-      await carregarFotos();
-    });
+    // inicialização
+    await carregarModelos();
+    await carregarFotos();
+    logStatus('Pronto');
+    console.log('Inicialização completa. Inspecione console para logs detalhados.');
+  })();
   </script>
 </body>
 </html>
