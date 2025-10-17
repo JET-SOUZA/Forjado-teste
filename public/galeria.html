@@ -22,7 +22,11 @@
 </style>
 </head>
 <body>
-  <div id="loading-container">Carregando modelos faciais...<div style="width:60%;height:10px;background:#333;border-radius:5px;margin-top:10px"><div id="loading-progress" style="height:10px;background:deepskyblue;width:0%"></div></div></div>
+  <div id="loading-container">Carregando modelos faciais...
+    <div style="width:60%;height:10px;background:#333;border-radius:5px;margin-top:10px">
+      <div id="loading-progress" style="height:10px;background:deepskyblue;width:0%"></div>
+    </div>
+  </div>
 
   <h1>Galeria de Teste — Forjados</h1>
   <div id="buttons">
@@ -75,7 +79,7 @@
     // Carrega modelos com feedback
     async function carregarModelos(){
       try {
-        const MODEL_URL = './models';
+        const MODEL_URL = '/models'; // ✅ caminho ajustado para /public/models
         const models = [
           faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
           faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
@@ -96,7 +100,7 @@
     // Carregar fotos e montar galeria
     async function carregarFotos(){
       try{
-        const r = await fetch('./fotos.json');
+        const r = await fetch('/fotos/fotos.json'); // ✅ caminho ajustado
         const lista = await r.json();
         montarGaleria(lista);
         console.log('fotos.json carregado:', lista.length, 'itens');
@@ -110,8 +114,8 @@
       gallery.innerHTML='';
       lista.forEach(item=>{
         const img = document.createElement('img');
-        const thumb = item.thumb.startsWith('/') ? item.thumb : `/${item.thumb}`;
-        const src = item.src.startsWith('/') ? item.src : `/${item.src}`;
+        const thumb = item.thumb.startsWith('/') ? item.thumb : `/fotos/${item.thumb}`;  // ✅ caminho corrigido
+        const src = item.src.startsWith('/') ? item.src : `/fotos/${item.src}`;
         img.src = thumb;
         img.dataset.full = src;
         img.alt = item.alt || '';
@@ -125,36 +129,24 @@
     function abrirModal(src){ modalImg.src = src; modal.style.display='flex'; }
     modal.addEventListener('click', ()=> modal.style.display='none');
 
-    // Função de debug e processamento
+    // Função de reconhecimento facial
     async function processarSelfie(img){
       if(!modelsLoaded){ alert('Modelos ainda não carregados. Aguarde...'); return; }
       try {
         logStatus('Processando imagem...');
-        console.log('Image natural size:', img.naturalWidth, img.naturalHeight, 'video size fallback', video.videoWidth, video.videoHeight);
-
-        // opções mais sensíveis para tiny detector
         const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.35 });
-
         const det = await faceapi.detectSingleFace(img, options).withFaceLandmarks(true).withFaceDescriptor();
-        console.log('det:', det);
-        if(!det){ alert('Nenhum rosto detectado! (verifique iluminação/ângulo)'); logStatus('Nenhum rosto detectado'); return; }
+        if(!det){ alert('Nenhum rosto detectado!'); logStatus('Nenhum rosto detectado'); return; }
 
-        // informa descriptor length
-        console.log('Descriptor length:', det.descriptor.length);
-        logStatus('Rosto detectado. Comparando com galeria...');
-
-        const limite = 0.55; // ajuste fino
+        const limite = 0.55;
         const resultados = [];
 
         for(const imagem of allImages){
           try {
             const imgEl = await faceapi.fetchImage(imagem.dataset.full);
-            console.log('Processando imagem da galeria, size:', imgEl.naturalWidth, imgEl.naturalHeight, imagem.dataset.full);
             const det2 = await faceapi.detectSingleFace(imgEl, options).withFaceLandmarks(true).withFaceDescriptor();
-            console.log('det2 for', imagem.dataset.full, det2 && true);
             if(det2){
               const dist = faceapi.euclideanDistance(det.descriptor, det2.descriptor);
-              console.log('dist to', imagem.dataset.full, dist);
               if(dist < limite) resultados.push({el:imagem, dist});
             }
           } catch(innerErr){
@@ -162,9 +154,7 @@
           }
         }
 
-        // ordena por distância (menor = mais parecido)
         resultados.sort((a,b)=>a.dist - b.dist);
-
         if(resultados.length){
           gallery.innerHTML='';
           resultados.forEach(r => gallery.appendChild(r.el));
@@ -175,11 +165,11 @@
         }
       } catch(err){
         console.error('Erro no processamento da selfie:', err);
-        alert('Erro durante a detecção (veja console).');
+        alert('Erro durante a detecção.');
       }
     }
 
-    // Upload de arquivo: cria <img> via URL.createObjectURL
+    // Upload de arquivo
     btnUpload.addEventListener('click', ()=> fileInput.click());
     fileInput.addEventListener('change', async e=>{
       const file = e.target.files[0];
@@ -187,7 +177,6 @@
       const img = new Image();
       img.src = URL.createObjectURL(file);
       img.onload = async ()=>{
-        console.log('Upload image loaded:', img.naturalWidth, img.naturalHeight);
         await processarSelfie(img);
         URL.revokeObjectURL(img.src);
       };
@@ -231,11 +220,9 @@
 
     btnMostrarTodas.addEventListener('click', carregarFotos);
 
-    // inicialização
     await carregarModelos();
     await carregarFotos();
     logStatus('Pronto');
-    console.log('Inicialização completa. Inspecione console para logs detalhados.');
   })();
   </script>
 </body>
