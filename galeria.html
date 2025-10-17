@@ -84,7 +84,7 @@ let allImages = [];
 
 // Carregar lista de fotos
 async function carregarFotos() {
-  const res = await fetch('fotos.json');
+const res = await fetch('/fotos.json');
   fotos = await res.json();
   montarGaleria(fotos);
 }
