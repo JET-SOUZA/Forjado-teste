@@ -1,6 +1,103 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Galeria de Fotos</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    #galeria {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .foto {
+      position: relative;
+    }
+    .foto img {
+      width: 100%;
+      border-radius: 10px;
+      transition: transform 0.3s;
+    }
+    .foto img:hover {
+      transform: scale(1.05);
+    }
+    #status {
+      margin-top: 10px;
+      color: #0f0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Galeria de Fotos</h1>
+  <div id="status">Carregando modelos...</div>
+  <div id="galeria"></div>
+
+  <script>
+    async function carregarModelos() {
+      const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights';
+      try {
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+        ]);
+        document.getElementById('status').textContent = 'Modelos carregados com sucesso!';
+      } catch (e) {
+        document.getElementById('status').textContent = 'Erro ao carregar modelos: ' + e.message;
+        console.error(e);
+      }
+    }
+
+    async function carregarFotos() {
+      try {
+        const response = await fetch('fotos.json');
+        if (!response.ok) throw new Error('Erro ao carregar fotos.json');
+        const fotos = await response.json();
+
+        if (!Array.isArray(fotos) || fotos.length === 0) {
+          throw new Error('Nenhuma entrada válida em fotos.json');
+        }
+
+        const galeria = document.getElementById('galeria');
+        galeria.innerHTML = '';
+
+        for (const foto of fotos) {
+          const div = document.createElement('div');
+          div.className = 'foto';
+          const img = document.createElement('img');
+          img.src = `fotos/${foto.arquivo}`;
+          img.alt = foto.nome || 'Foto';
+          div.appendChild(img);
+          galeria.appendChild(div);
+        }
+
+        document.getElementById('status').textContent = 'Pronto';
+      } catch (e) {
+        document.getElementById('status').textContent = 'Falha ao carregar fotos.json: ' + e.message;
+        console.error(e);
+      }
+    }
+
+    (async () => {
+      await carregarModelos();
+      await carregarFotos();
+    })();
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Galeria de Teste — Forjados</title>
