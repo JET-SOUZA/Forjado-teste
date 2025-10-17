@@ -13,13 +13,9 @@
       padding: 20px;
     }
 
-    h1 {
-      margin-bottom: 10px;
-    }
+    h1 { margin-bottom: 10px; }
 
-    #buttons {
-      margin-bottom: 20px;
-    }
+    #buttons { margin-bottom: 20px; }
 
     button {
       margin-right: 10px;
@@ -33,9 +29,7 @@
       transition: background 0.3s;
     }
 
-    button:hover {
-      background: #444;
-    }
+    button:hover { background: #444; }
 
     #gallery {
       display: grid;
@@ -126,7 +120,7 @@
 
   <input type="file" id="fileInput" accept="image/*" style="display:none">
 
-  <!-- ✅ Biblioteca principal -->
+  <!-- Biblioteca principal -->
   <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
   <script>
@@ -160,26 +154,26 @@
     }
 
     async function carregarFotos() {
-     const resposta = await fetch("./fotos.json");
+      const resposta = await fetch("./fotos.json");
       const lista = await resposta.json();
       montarGaleria(lista);
     }
 
-   function montarGaleria(lista) {
-  gallery.innerHTML = '';
-  lista.forEach(item => {
-    const img = document.createElement('img');
+    function montarGaleria(lista) {
+      gallery.innerHTML = '';
+      lista.forEach(item => {
+        const img = document.createElement('img');
 
-    // Corrige o caminho: sempre relativo ao HTML atual
-    img.src = item.thumb.startsWith('./') ? item.thumb : `./${item.thumb}`;
-    img.dataset.full = item.src.startsWith('./') ? item.src : `./${item.src}`;
+        // ✅ Caminhos corrigidos (agora sempre absolutos a partir da raiz do site)
+        img.src = item.thumb.startsWith('/') ? item.thumb : `/${item.thumb}`;
+        img.dataset.full = item.src.startsWith('/') ? item.src : `/${item.src}`;
 
-    img.alt = item.alt || '';
-    img.addEventListener('click', () => abrirModal(img.dataset.full));
-    gallery.appendChild(img);
-  });
-  allImages = [...gallery.querySelectorAll('img')];
-}
+        img.alt = item.alt || '';
+        img.addEventListener('click', () => abrirModal(img.dataset.full));
+        gallery.appendChild(img);
+      });
+      allImages = [...gallery.querySelectorAll('img')];
+    }
 
     function abrirModal(src) {
       modalImg.src = src;
