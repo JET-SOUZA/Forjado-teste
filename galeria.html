@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Galeria de Teste — Forjados</title>
   <style>
     body {
@@ -11,40 +11,49 @@
       margin: 0;
       padding: 20px;
     }
+
     h1 {
-      font-size: 28px;
-      color: #111;
+      margin-bottom: 10px;
     }
-    #controls {
-      margin-bottom: 15px;
+
+    #buttons {
+      margin-bottom: 20px;
     }
+
     button {
-      background: #111;
-      color: #fff;
-      border: none;
-      padding: 10px 14px;
-      border-radius: 6px;
-      cursor: pointer;
       margin-right: 10px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: #222;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
     }
+
     button:hover {
-      background: #333;
+      background: #444;
+      transform: scale(1.03);
     }
+
     #gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 10px;
     }
+
     #gallery img {
       width: 100%;
       border-radius: 8px;
-      object-fit: cover;
       cursor: pointer;
       transition: transform 0.2s;
     }
+
     #gallery img:hover {
       transform: scale(1.05);
     }
+
+    /* Modal */
     #modal {
       display: none;
       position: fixed;
@@ -52,84 +61,179 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0, 0, 0, 0.9);
       justify-content: center;
       align-items: center;
+      z-index: 1000;
     }
+
     #modal img {
       max-width: 90%;
-      max-height: 80%;
+      max-height: 90%;
       border-radius: 10px;
+    }
+
+    /* Barra de carregamento */
+    #loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #000;
+      color: #fff;
+      font-size: 18px;
+      font-weight: bold;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2000;
+    }
+
+    #progress-bar {
+      width: 60%;
+      height: 12px;
+      background: #333;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    #progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      border-radius: 6px;
+      transition: width 0.3s ease;
     }
   </style>
 </head>
 <body>
-  <h1>Galeria de Teste — Forjados</h1>
-  <div id="controls">
-    <button id="upload"><span>📸</span> Enviar selfie</button>
-    <button id="reset">Mostrar todas</button>
+  <div id="loading-container">
+    <div>Carregando modelos faciais...</div>
+    <div id="progress-bar">
+      <div id="progress"></div>
+    </div>
   </div>
 
-  <div id="gallery">Carregando galeria...</div>
+  <h1>Galeria de Teste — Forjados</h1>
+
+  <div id="buttons">
+    <button id="upload">📸 Enviar selfie</button>
+    <button id="reset">🔄 Mostrar todas</button>
+  </div>
+
+  <div id="gallery"></div>
 
   <div id="modal">
     <img id="modalImg" src="">
   </div>
 
+  <input type="file" id="fileInput" accept="image/*" style="display:none">
+
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
   <script>
     const gallery = document.getElementById('gallery');
     const modal = document.getElementById('modal');
     const modalImg = document.getElementById('modalImg');
-    const uploadInput = document.getElementById('upload');
+    const uploadBtn = document.getElementById('upload');
     const resetBtn = document.getElementById('reset');
-
+    const fileInput = document.getElementById('fileInput');
+    const loadingContainer = document.getElementById('loading-container');
+    const progressBar = document.getElementById('progress');
     let fotos = [];
     let allImages = [];
 
-    async function carregarFotos() {
-      try {
-        const res = await fetch('/fotos.json');
-        if (!res.ok) throw new Error('Erro ao carregar fotos.json');
-        fotos = await res.json();
-        montarGaleria(fotos);
-      } catch (err) {
-        console.error('❌ Falha ao carregar fotos:', err);
-        gallery.innerHTML = '<p>Erro ao carregar galeria.</p>';
-      }
+    async function atualizarProgresso(valor) {
+      progressBar.style.width = valor + '%';
     }
 
-   function montarGaleria(lista) {
-  gallery.innerHTML = '';
-  lista.forEach(item => {
-    const img = document.createElement('img');
+    async function carregarModelos() {
+      await atualizarProgresso(10);
+      await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+      await atualizarProgresso(45);
+      await faceapi.nets.faceLandmark68TinyNet.loadFromUri('/models');
+      await atualizarProgresso(70);
+      await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+      await atualizarProgresso(100);
+      setTimeout(() => {
+        loadingContainer.style.display = 'none';
+      }, 600);
+    }
 
-    // Usa caminhos relativos (compatível com Vercel)
-    img.src = item.thumb || item.src; 
-    img.dataset.full = item.src;
-    img.alt = item.alt || '';
+    async function carregarFotos() {
+      const res = await fetch('fotos.json');
+      fotos = await res.json();
+      montarGaleria(fotos);
+    }
 
-    img.loading = 'lazy'; // melhora desempenho
-    gallery.appendChild(img);
-  });
+    function montarGaleria(lista) {
+      gallery.innerHTML = '';
+      lista.forEach(item => {
+        const img = document.createElement('img');
+        img.src = item.thumb.startsWith('/') ? item.thumb : `/${item.thumb}`;
+        img.dataset.full = item.src.startsWith('/') ? item.src : `/${item.src}`;
+        img.alt = item.alt || '';
+        gallery.appendChild(img);
+      });
+      allImages = [...gallery.querySelectorAll('img')];
+    }
 
-  allImages = [...gallery.querySelectorAll('img')];
-}
-
-    // Evento para abrir imagem no modal
     gallery.addEventListener('click', e => {
       if (e.target.tagName === 'IMG') {
         modal.style.display = 'flex';
-        modalImg.src = e.target.getAttribute('data-full');
+        modalImg.src = e.target.dataset.full;
       }
     });
 
-    // Fechar modal ao clicar fora
     modal.addEventListener('click', e => {
-      if (e.target !== modalImg) modal.style.display = 'none';
+      if (e.target === modal) modal.style.display = 'none';
     });
 
-    // Inicializar galeria
-    carregarFotos();
+    uploadBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const img = await faceapi.bufferToImage(file);
+      const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks(true)
+        .withFaceDescriptor();
+
+      if (!detections) {
+        alert('Nenhum rosto detectado na selfie.');
+        return;
+      }
+
+      const labeledDescriptors = await Promise.all(
+        fotos.map(async f => {
+          const refImg = await faceapi.fetchImage(f.src);
+          const det = await faceapi.detectSingleFace(refImg, new faceapi.TinyFaceDetectorOptions())
+            .withFaceLandmarks(true)
+            .withFaceDescriptor();
+          return det ? new faceapi.LabeledFaceDescriptors(f.alt, [det.descriptor]) : null;
+        })
+      );
+
+      const validDescriptors = labeledDescriptors.filter(Boolean);
+      const faceMatcher = new faceapi.FaceMatcher(validDescriptors, 0.5);
+      const bestMatch = faceMatcher.findBestMatch(detections.descriptor);
+
+      const matched = fotos.find(f => f.alt === bestMatch.label);
+
+      if (matched && bestMatch.label !== 'unknown') {
+        montarGaleria([matched]);
+      } else {
+        alert('Rosto não reconhecido.');
+      }
+    });
+
+    resetBtn.addEventListener('click', () => montarGaleria(fotos));
+
+    carregarModelos().then(carregarFotos);
   </script>
 </body>
 </html>
