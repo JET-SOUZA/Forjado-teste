@@ -1,0 +1,8 @@
+{
+  "routes": [
+    { "src": "/fotos/(.*)", "dest": "/fotos/$1" }
+  ],
+  "static": {
+    "directoryListing": true
+  }
+}
