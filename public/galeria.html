@@ -100,7 +100,8 @@
     // Carregar fotos e montar galeria
     async function carregarFotos(){
       try{
-        const r = await fetch('/fotos/fotos.json'); // ✅ caminho ajustado
+        // ✅ corrigido: agora o JSON está em /fotos.json
+        const r = await fetch('/fotos.json');
         const lista = await r.json();
         montarGaleria(lista);
         console.log('fotos.json carregado:', lista.length, 'itens');
@@ -114,7 +115,7 @@
       gallery.innerHTML='';
       lista.forEach(item=>{
         const img = document.createElement('img');
-        const thumb = item.thumb.startsWith('/') ? item.thumb : `/fotos/${item.thumb}`;  // ✅ caminho corrigido
+        const thumb = item.thumb.startsWith('/') ? item.thumb : `/fotos/${item.thumb}`;
         const src = item.src.startsWith('/') ? item.src : `/fotos/${item.src}`;
         img.src = thumb;
         img.dataset.full = src;
