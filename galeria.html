@@ -160,7 +160,7 @@
     }
 
     async function carregarFotos() {
-      const resposta = await fetch('./fotos/fotos.json');
+      const response = await fetch('/fotos.json');
       const lista = await resposta.json();
       montarGaleria(lista);
     }
