@@ -96,6 +96,19 @@
       width: 0%;
       transition: width 0.3s;
     }
+
+    #cameraContainer {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    video {
+      width: 300px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 
@@ -108,8 +121,14 @@
   <h1>Galeria de Teste — Forjados</h1>
 
   <div id="buttons">
-    <button id="btnSelfie">📸 Enviar selfie</button>
-    <button id="btnMostrarTodas">🖼️ Mostrar todas</button>
+    <button id="btnSelfie">📸 Tirar selfie</button>
+    <button id="btnUpload">🖼️ Enviar imagem</button>
+    <button id="btnMostrarTodas">🔁 Mostrar todas</button>
+  </div>
+
+  <div id="cameraContainer">
+    <video id="video" autoplay muted></video>
+    <button id="btnCapturar">📷 Capturar</button>
   </div>
 
   <div id="gallery"></div>
@@ -120,7 +139,6 @@
 
   <input type="file" id="fileInput" accept="image/*" style="display:none">
 
-  <!-- Biblioteca principal -->
   <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
   <script>
@@ -129,32 +147,35 @@
     const modalImg = document.getElementById('modalImg');
     const fileInput = document.getElementById('fileInput');
     const btnSelfie = document.getElementById('btnSelfie');
+    const btnUpload = document.getElementById('btnUpload');
     const btnMostrarTodas = document.getElementById('btnMostrarTodas');
+    const cameraContainer = document.getElementById('cameraContainer');
+    const video = document.getElementById('video');
+    const btnCapturar = document.getElementById('btnCapturar');
     const loadingContainer = document.getElementById('loading-container');
     const loadingProgress = document.getElementById('loading-progress');
 
     let allImages = [];
-    let faceMatcher = null;
 
     async function carregarModelos() {
       const MODEL_URL = './models';
-      const totalModelos = 3;
+      const total = 3;
       let carregados = 0;
 
-      const atualizarBarra = () => {
+      const atualizar = () => {
         carregados++;
-        loadingProgress.style.width = `${(carregados / totalModelos) * 100}%`;
+        loadingProgress.style.width = `${(carregados / total) * 100}%`;
       };
 
-      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL).then(atualizarBarra);
-      await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL).then(atualizarBarra);
-      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL).then(atualizarBarra);
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL).then(atualizar);
+      await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL).then(atualizar);
+      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL).then(atualizar);
 
       loadingContainer.style.display = 'none';
     }
 
     async function carregarFotos() {
-      const resposta = await fetch("./fotos.json");
+      const resposta = await fetch('./fotos.json');
       const lista = await resposta.json();
       montarGaleria(lista);
     }
@@ -163,11 +184,8 @@
       gallery.innerHTML = '';
       lista.forEach(item => {
         const img = document.createElement('img');
-
-        // ✅ Caminhos corrigidos (agora sempre absolutos a partir da raiz do site)
         img.src = item.thumb.startsWith('/') ? item.thumb : `/${item.thumb}`;
         img.dataset.full = item.src.startsWith('/') ? item.src : `/${item.src}`;
-
         img.alt = item.alt || '';
         img.addEventListener('click', () => abrirModal(img.dataset.full));
         gallery.appendChild(img);
@@ -179,41 +197,57 @@
       modalImg.src = src;
       modal.style.display = 'flex';
     }
-
     modal.addEventListener('click', () => modal.style.display = 'none');
 
     async function processarSelfie(img) {
-      const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks(true).withFaceDescriptor();
-      if (!detections) {
-        alert('Nenhum rosto detectado!');
-        return;
-      }
+      const det = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks(true).withFaceDescriptor();
+      if (!det) return alert('Nenhum rosto detectado!');
 
-      const distanciaMaxima = 0.5;
       const resultados = [];
+      const limite = 0.5;
 
       for (const imagem of allImages) {
         const imgEl = await faceapi.fetchImage(imagem.dataset.full);
-        const det = await faceapi.detectSingleFace(imgEl, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks(true).withFaceDescriptor();
+        const det2 = await faceapi.detectSingleFace(imgEl, new faceapi.TinyFaceDetectorOptions())
+          .withFaceLandmarks(true).withFaceDescriptor();
 
-        if (det) {
-          const distancia = faceapi.euclideanDistance(detections.descriptor, det.descriptor);
-          if (distancia < distanciaMaxima) resultados.push(imagem);
+        if (det2) {
+          const dist = faceapi.euclideanDistance(det.descriptor, det2.descriptor);
+          if (dist < limite) resultados.push(imagem);
         }
       }
 
       gallery.innerHTML = '';
       resultados.forEach(img => gallery.appendChild(img));
-      if (resultados.length === 0) alert('Nenhuma correspondência encontrada.');
+      if (!resultados.length) alert('Nenhuma correspondência encontrada.');
     }
 
-    btnSelfie.addEventListener('click', () => fileInput.click());
-
+    // Upload de arquivo
+    btnUpload.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
       const img = await faceapi.bufferToImage(file);
       processarSelfie(img);
+    });
+
+    // Abertura da câmera
+    btnSelfie.addEventListener('click', async () => {
+      cameraContainer.style.display = 'flex';
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+    });
+
+    btnCapturar.addEventListener('click', async () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      const img = await faceapi.bufferToImage(canvas.toDataURL('image/png'));
+      processarSelfie(img);
+      cameraContainer.style.display = 'none';
+      video.srcObject.getTracks().forEach(t => t.stop());
     });
 
     btnMostrarTodas.addEventListener('click', carregarFotos);
