@@ -21,7 +21,7 @@
   #status{margin-top:10px;color:#333;font-weight:bold}
 </style>
 
-<!-- ✅ Biblioteca face-api.js -->
+<!-- ✅ face-api.js -->
 <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
@@ -77,7 +77,7 @@
       statusEl.textContent = msg;
     }
 
-    // Aguarda a biblioteca faceapi carregar
+    // Espera face-api carregar
     function esperarFaceAPI() {
       return new Promise((resolve, reject) => {
         let tentativas = 0;
@@ -87,7 +87,7 @@
             resolve();
           } else if (++tentativas > 50) {
             clearInterval(timer);
-            reject(new Error("faceapi não carregou"));
+            reject(new Error("face-api.js não carregou"));
           }
         }, 200);
       });
@@ -101,25 +101,27 @@
         const total = 3;
         let carregados = 0;
 
+        const updateProgress = () => loadingProgress.style.width = `${(carregados / total) * 100}%`;
+
         await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-        carregados++; loadingProgress.style.width = `${(carregados / total) * 100}%`;
+        carregados++; updateProgress();
 
         await faceapi.nets.faceLandmark68TinyNet.loadFromUri('/models');
-        carregados++; loadingProgress.style.width = `${(carregados / total) * 100}%`;
+        carregados++; updateProgress();
 
         await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
-        carregados++; loadingProgress.style.width = `${(carregados / total) * 100}%`;
+        carregados++; updateProgress();
 
         modelsLoaded = true;
         loadingContainer.style.display = 'none';
-        logStatus('Modelos carregados.');
+        logStatus('Modelos carregados com sucesso.');
       } catch (err) {
-        console.error('Erro ao carregar modelos:', err);
-        alert('Erro ao carregar modelos. Verifique se a pasta /models está acessível.');
+        console.error('❌ Erro ao carregar modelos:', err);
+        alert('Erro ao carregar modelos. Verifique se a pasta /models contém os arquivos corretos.');
       }
     }
 
-    // ✅ Carrega fotos.json
+    // ✅ Carrega fotos.json (agora compatível com "arquivo" e "src")
     async function carregarFotos() {
       try {
         const r = await fetch('/fotos.json');
@@ -127,13 +129,20 @@
 
         if (!Array.isArray(lista)) throw new Error("fotos.json não é uma lista válida.");
 
-        const validas = lista.filter(f => f && f.src && typeof f.src === 'string');
+        const validas = lista
+          .map(f => ({
+            src: f.src || f.arquivo,
+            thumb: f.thumb || f.src || f.arquivo,
+            alt: f.alt || ''
+          }))
+          .filter(f => f && typeof f.src === 'string');
+
         if (validas.length === 0) throw new Error("Nenhuma entrada válida em fotos.json.");
 
         montarGaleria(validas);
-        console.log('fotos.json carregado:', validas.length, 'itens');
+        console.log(`✅ fotos.json carregado (${validas.length} itens)`);
       } catch (err) {
-        console.error('Falha ao carregar fotos.json:', err);
+        console.error('❌ Falha ao carregar fotos.json:', err);
         alert('Erro ao carregar fotos.json. Verifique se o arquivo existe e contém um array válido.');
       }
     }
@@ -141,9 +150,8 @@
     function montarGaleria(lista) {
       gallery.innerHTML = '';
       lista.forEach(item => {
-        if (!item.src) return;
         const img = document.createElement('img');
-        const thumb = item.thumb?.startsWith('/') ? item.thumb : `/${item.thumb}`;
+        const thumb = item.thumb.startsWith('/') ? item.thumb : `/${item.thumb}`;
         const src = item.src.startsWith('/') ? item.src : `/${item.src}`;
         img.src = thumb;
         img.dataset.full = src;
@@ -152,14 +160,13 @@
         gallery.appendChild(img);
       });
       allImages = [...gallery.querySelectorAll('img')];
-      console.log('Galeria montada com', allImages.length, 'imagens');
+      logStatus(`Galeria montada com ${allImages.length} imagens.`);
     }
 
     function abrirModal(src) {
       modalImg.src = src;
       modal.style.display = 'flex';
     }
-
     modal.addEventListener('click', () => modal.style.display = 'none');
 
     async function processarSelfie(img) {
@@ -169,12 +176,12 @@
       }
 
       try {
-        logStatus('Processando imagem...');
-        const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.4 });
+        logStatus('🔍 Processando imagem...');
+        const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 });
         const det = await faceapi.detectSingleFace(img, options).withFaceLandmarks(true).withFaceDescriptor();
         if (!det) {
           alert('Nenhum rosto detectado!');
-          logStatus('Nenhum rosto detectado');
+          logStatus('Nenhum rosto detectado.');
           return;
         }
 
@@ -198,7 +205,7 @@
         if (resultados.length) {
           gallery.innerHTML = '';
           resultados.forEach(r => gallery.appendChild(r.el));
-          logStatus(`Encontrado(s) ${resultados.length} correspondência(s).`);
+          logStatus(`✅ ${resultados.length} correspondência(s) encontrada(s).`);
         } else {
           alert('Nenhuma correspondência encontrada.');
           logStatus('Nenhuma correspondência encontrada.');
@@ -263,7 +270,7 @@
 
     await carregarModelos();
     await carregarFotos();
-    logStatus('Pronto');
+    logStatus('✅ Pronto');
   })();
   </script>
 </body>
