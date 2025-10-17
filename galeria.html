@@ -165,18 +165,21 @@
       montarGaleria(lista);
     }
 
-    function montarGaleria(lista) {
-      gallery.innerHTML = '';
-      lista.forEach(item => {
-        const img = document.createElement('img');
-        img.src = item.thumb.startsWith('/') ? item.thumb : `/${item.thumb}`;
-        img.dataset.full = item.src.startsWith('/') ? item.src : `/${item.src}`;
-        img.alt = item.alt || '';
-        img.addEventListener('click', () => abrirModal(img.dataset.full));
-        gallery.appendChild(img);
-      });
-      allImages = [...gallery.querySelectorAll('img')];
-    }
+   function montarGaleria(lista) {
+  gallery.innerHTML = '';
+  lista.forEach(item => {
+    const img = document.createElement('img');
+
+    // Corrige o caminho: sempre relativo ao HTML atual
+    img.src = item.thumb.startsWith('./') ? item.thumb : `./${item.thumb}`;
+    img.dataset.full = item.src.startsWith('./') ? item.src : `./${item.src}`;
+
+    img.alt = item.alt || '';
+    img.addEventListener('click', () => abrirModal(img.dataset.full));
+    gallery.appendChild(img);
+  });
+  allImages = [...gallery.querySelectorAll('img')];
+}
 
     function abrirModal(src) {
       modalImg.src = src;
