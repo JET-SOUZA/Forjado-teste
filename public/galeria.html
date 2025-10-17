@@ -21,9 +21,8 @@
   #status{margin-top:10px;color:#333;font-weight:bold}
 </style>
 
-<!-- ⚡ face-api.js deve vir antes de tudo, sem defer -->
+<!-- ✅ Carrega a biblioteca face-api.js antes de tudo -->
 <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-
 </head>
 <body>
   <div id="loading-container">Carregando modelos faciais...
@@ -71,60 +70,79 @@
 
     let allImages = [];
     let modelsLoaded = false;
-    let currentStream = null;
 
     function logStatus(msg){
       console.log(msg);
       statusEl.textContent = msg;
     }
 
-    // 🔹 Carrega modelos faciais
+    // ✅ Aguarda a biblioteca faceapi carregar
+    function esperarFaceAPI(){
+      return new Promise((resolve, reject)=>{
+        let tentativas = 0;
+        const timer = setInterval(()=>{
+          if (window.faceapi) {
+            clearInterval(timer);
+            resolve();
+          } else if (++tentativas > 50) {
+            clearInterval(timer);
+            reject(new Error("faceapi não carregou"));
+          }
+        }, 200);
+      });
+    }
+
+    // ✅ Carrega modelos
     async function carregarModelos(){
       try {
+        await esperarFaceAPI(); // Garante que faceapi existe
+
         const MODEL_URL = '/models';
-        const testReq = await fetch(`${MODEL_URL}/tiny_face_detector_model-weights_manifest.json`);
-        if (!testReq.ok) throw new Error('Pasta /models não acessível.');
-        
         const modelos = [
           faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
           faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
           faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
         ];
+
         let i = 0;
         for (const m of modelos){
-          await m; i++;
+          await m;
+          i++;
           loadingProgress.style.width = `${(i/modelos.length)*100}%`;
         }
         modelsLoaded = true;
         loadingContainer.style.display='none';
-        logStatus('Modelos carregados com sucesso.');
+        logStatus('Modelos carregados.');
       } catch(err){
         console.error('Erro ao carregar modelos:', err);
-        alert('❌ Erro: não foi possível carregar os modelos. Verifique se /models está no deploy e público.');
+        alert('Erro ao carregar modelos. Verifique se a pasta /models está acessível.');
       }
     }
 
-    // 🔹 Carrega e monta galeria
+    // ✅ Carrega fotos.json com validação
     async function carregarFotos(){
-      try {
+      try{
         const r = await fetch('/fotos.json');
-        if (!r.ok) throw new Error('fotos.json não encontrado');
         const lista = await r.json();
-        montarGaleria(lista);
-        console.log('fotos.json carregado:', lista.length, 'itens');
-      } catch(err){
+
+        if (!Array.isArray(lista)) throw new Error("fotos.json não é uma lista válida.");
+
+        const validas = lista.filter(f => f && f.arquivo && typeof f.arquivo === 'string');
+        if (validas.length === 0) throw new Error("Nenhuma entrada válida em fotos.json.");
+
+        montarGaleria(validas);
+        console.log('fotos.json carregado:', validas.length, 'itens');
+      }catch(err){
         console.error('Falha ao carregar fotos.json:', err);
-        alert('❌ Erro ao carregar fotos.json. Verifique se o arquivo existe em /public.');
+        alert('Erro ao carregar fotos.json. Verifique se o arquivo existe e contém um array válido.');
       }
     }
 
     function montarGaleria(lista){
       gallery.innerHTML='';
       lista.forEach(item=>{
-        const nome = item.arquivo || item.src || item.thumb;
-        if (!nome) return;
-        const src = nome.startsWith('/') ? nome : `/fotos/${nome}`;
         const img = document.createElement('img');
+        const src = item.arquivo.startsWith('/') ? item.arquivo : `/fotos/${item.arquivo}`;
         img.src = src;
         img.alt = item.alt || '';
         img.dataset.full = src;
@@ -138,14 +156,13 @@
     function abrirModal(src){ modalImg.src = src; modal.style.display='flex'; }
     modal.addEventListener('click', ()=> modal.style.display='none');
 
-    // 🔹 Processa selfie ou upload
     async function processarSelfie(img){
-      if(!modelsLoaded){ alert('Aguarde o carregamento dos modelos.'); return; }
+      if(!modelsLoaded){ alert('Modelos ainda não carregados. Aguarde...'); return; }
       try {
         logStatus('Processando imagem...');
         const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.4 });
         const det = await faceapi.detectSingleFace(img, options).withFaceLandmarks(true).withFaceDescriptor();
-        if(!det){ alert('Nenhum rosto detectado!'); return; }
+        if(!det){ alert('Nenhum rosto detectado!'); logStatus('Nenhum rosto detectado'); return; }
 
         const limite = 0.55;
         const resultados = [];
@@ -167,18 +184,17 @@
         if(resultados.length){
           gallery.innerHTML='';
           resultados.forEach(r => gallery.appendChild(r.el));
-          logStatus(`Encontrado(s) ${resultados.length} rosto(s) semelhante(s).`);
+          logStatus(`Encontrado(s) ${resultados.length} correspondência(s).`);
         } else {
           alert('Nenhuma correspondência encontrada.');
           logStatus('Nenhuma correspondência encontrada.');
         }
       } catch(err){
-        console.error('Erro ao processar selfie:', err);
-        alert('Erro ao comparar rostos.');
+        console.error('Erro no processamento da selfie:', err);
+        alert('Erro durante a detecção.');
       }
     }
 
-    // 🔹 Upload manual
     btnUpload.addEventListener('click', ()=> fileInput.click());
     fileInput.addEventListener('change', async e=>{
       const file = e.target.files[0];
@@ -191,7 +207,7 @@
       };
     });
 
-    // 🔹 Abertura da câmera
+    let currentStream = null;
     btnSelfie.addEventListener('click', async ()=>{
       try {
         cameraContainer.style.display='flex';
@@ -228,7 +244,7 @@
 
     await carregarModelos();
     await carregarFotos();
-    logStatus('✅ Pronto para uso');
+    logStatus('Pronto');
   })();
   </script>
 </body>
