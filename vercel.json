@@ -1,17 +1,8 @@
 {
+  "version": 2,
   "routes": [
-    {
-      "src": "/galeria",
-      "dest": "/galeria.html"
-    },
-    {
-      "src": "/galeria.html",
-      "dest": "/galeria.html"
-    },
-    {
-      "src": "/fotos/(.*)",
-      "dest": "/fotos/$1"
-    }
-  ],
-  "cleanUrls": true
+    { "src": "/galeria", "dest": "/galeria.html" },
+    { "src": "/galeria.html", "dest": "/galeria.html" },
+    { "src": "/fotos/(.*)", "dest": "/fotos/$1" }
+  ]
 }
