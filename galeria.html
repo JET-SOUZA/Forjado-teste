@@ -25,39 +25,33 @@
 </div>
 
 <script>
-// Lista de fotos de teste
-const fotos = [
-  {
-    "src": "Forjados/fotos/teste1.jpg",
-    "thumb": "Forjados/thumbs/teste1.jpg",
-    "alt": "teste1.jpg"
-  },
-  {
-    "src": "Forjados/fotos/teste2.jpg",
-    "thumb": "Forjados/thumbs/teste2.jpg",
-    "alt": "teste2.jpg"
+async function carregarGaleria() {
+  try {
+    const resposta = await fetch('fotos.json');
+    const fotos = await resposta.json();
+
+    const gallery = document.getElementById('gallery');
+    gallery.innerHTML = '';
+
+    fotos.forEach(item => {
+      const img = document.createElement('img');
+      img.src = item.thumb;
+      img.setAttribute('data-full', item.src);
+      img.alt = item.alt;
+      gallery.appendChild(img);
+    });
+  } catch (erro) {
+    document.getElementById('gallery').innerHTML = 'Erro ao carregar fotos.';
+    console.error(erro);
   }
-];
+}
 
-const gallery = document.getElementById('gallery');
-gallery.innerHTML = "";
-
-// Criar imagens da galeria
-fotos.forEach(item => {
-  const img = document.createElement('img');
-  img.src = item.thumb;      // miniatura
-  img.setAttribute('data-full', item.src); // imagem original
-  img.alt = item.alt;
-  gallery.appendChild(img);
-});
-
-// Modal e download
 const modal = document.getElementById('modal');
 const modalImg = document.getElementById('modal-img');
 const downloadLink = document.getElementById('download');
 
-gallery.addEventListener('click', e => {
-  if(e.target.tagName === 'IMG'){
+document.getElementById('gallery').addEventListener('click', e => {
+  if (e.target.tagName === 'IMG') {
     modal.style.display = 'flex';
     modalImg.src = e.target.dataset.full;
     downloadLink.href = e.target.dataset.full;
@@ -65,8 +59,14 @@ gallery.addEventListener('click', e => {
 });
 
 modal.addEventListener('click', e => {
-  if(e.target !== modalImg) modal.style.display = 'none';
+  if (e.target !== modalImg) modal.style.display = 'none';
 });
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') modal.style.display = 'none';
+});
+
+carregarGaleria();
 </script>
 
 </body>
