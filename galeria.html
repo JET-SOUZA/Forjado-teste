@@ -223,13 +223,19 @@
       if (!resultados.length) alert('Nenhuma correspondência encontrada.');
     }
 
-    // Upload de arquivo
+    // Upload de arquivo (corrigido)
     btnUpload.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', async e => {
       const file = e.target.files[0];
       if (!file) return;
-      const img = await faceapi.bufferToImage(file);
-      processarSelfie(img);
+
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+
+      img.onload = async () => {
+        await processarSelfie(img);
+        URL.revokeObjectURL(img.src);
+      };
     });
 
     // Abertura da câmera
@@ -239,15 +245,21 @@
       video.srcObject = stream;
     });
 
+    // Captura de imagem (corrigido)
     btnCapturar.addEventListener('click', async () => {
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       canvas.getContext('2d').drawImage(video, 0, 0);
-      const img = await faceapi.bufferToImage(canvas.toDataURL('image/png'));
-      processarSelfie(img);
-      cameraContainer.style.display = 'none';
-      video.srcObject.getTracks().forEach(t => t.stop());
+
+      const img = new Image();
+      img.src = canvas.toDataURL('image/png');
+
+      img.onload = async () => {
+        await processarSelfie(img);
+        cameraContainer.style.display = 'none';
+        video.srcObject.getTracks().forEach(t => t.stop());
+      };
     });
 
     btnMostrarTodas.addEventListener('click', carregarFotos);
