@@ -127,7 +127,7 @@
 
         if (!Array.isArray(lista)) throw new Error("fotos.json não é uma lista válida.");
 
-        const validas = lista.filter(f => f && f.arquivo && typeof f.arquivo === 'string');
+        const validas = lista.filter(f => f && f.src && typeof f.src === 'string');
         if (validas.length === 0) throw new Error("Nenhuma entrada válida em fotos.json.");
 
         montarGaleria(validas);
