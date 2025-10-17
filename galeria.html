@@ -98,23 +98,28 @@
       }
     }
 
-    function montarGaleria(lista) {
-      gallery.innerHTML = '';
-      lista.forEach(item => {
-        const img = document.createElement('img');
-        img.src = item.thumb.startsWith('/') ? item.thumb : `/${item.thumb}`;
-        img.dataset.full = item.src.startsWith('/') ? item.src : `/${item.src}`;
-        img.alt = item.alt || '';
-        gallery.appendChild(img);
-      });
-      allImages = [...gallery.querySelectorAll('img')];
-    }
+   function montarGaleria(lista) {
+  gallery.innerHTML = '';
+  lista.forEach(item => {
+    const img = document.createElement('img');
+
+    // Usa caminhos relativos (compatível com Vercel)
+    img.src = item.thumb || item.src; 
+    img.dataset.full = item.src;
+    img.alt = item.alt || '';
+
+    img.loading = 'lazy'; // melhora desempenho
+    gallery.appendChild(img);
+  });
+
+  allImages = [...gallery.querySelectorAll('img')];
+}
 
     // Evento para abrir imagem no modal
     gallery.addEventListener('click', e => {
       if (e.target.tagName === 'IMG') {
         modal.style.display = 'flex';
-        modalImg.src = e.target.dataset.full;
+        modalImg.src = e.target.getAttribute('data-full');
       }
     });
 
