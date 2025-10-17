@@ -1,158 +1,130 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Galeria — Forjados</title>
-
-<style>
-  body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-  h1 { margin-bottom: 10px; }
-  .actions { display: flex; gap: 10px; margin-bottom: 20px; }
-  input[type="file"] { display: none; }
-  label, button {
-    background: #333; color: white; padding: 10px 15px;
-    border-radius: 5px; cursor: pointer; border: none;
-  }
-  label:hover, button:hover { background: #555; }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
-  }
-
-  .grid img {
-    width: 100%; height: auto;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-
-  .grid img:hover { transform: scale(1.05); }
-
-  #modal {
-    display: none; position: fixed;
-    top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.8);
-    justify-content:center; align-items:center;
-  }
-
-  #modal img {
-    max-width:90%; max-height:90%;
-    border-radius:10px;
-  }
-
-  #modal a {
-    position: absolute; top: 20px; right: 20px;
-    color:white; font-size:18px;
-    text-decoration:none; background:#333;
-    padding:10px; border-radius:5px;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galeria de Teste — Forjados</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 28px;
+      color: #111;
+    }
+    #controls {
+      margin-bottom: 15px;
+    }
+    button {
+      background: #111;
+      color: #fff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background: #333;
+    }
+    #gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+    #gallery img {
+      width: 100%;
+      border-radius: 8px;
+      object-fit: cover;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    #gallery img:hover {
+      transform: scale(1.05);
+    }
+    #modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+    }
+    #modal img {
+      max-width: 90%;
+      max-height: 80%;
+      border-radius: 10px;
+    }
+  </style>
 </head>
 <body>
+  <h1>Galeria de Teste — Forjados</h1>
+  <div id="controls">
+    <button id="upload"><span>📸</span> Enviar selfie</button>
+    <button id="reset">Mostrar todas</button>
+  </div>
 
-<h1>Galeria de Teste — Forjados</h1>
+  <div id="gallery">Carregando galeria...</div>
 
-<div class="actions">
-  <label for="upload">📸 Enviar selfie</label>
-  <input type="file" id="upload" accept="image/*">
-  <button id="reset">Mostrar todas</button>
-</div>
+  <div id="modal">
+    <img id="modalImg" src="">
+  </div>
 
-<div class="grid" id="gallery">Carregando galeria...</div>
+  <script>
+    const gallery = document.getElementById('gallery');
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modalImg');
+    const uploadInput = document.getElementById('upload');
+    const resetBtn = document.getElementById('reset');
 
-<div id="modal">
-  <a id="download" href="#" download>Baixar</a>
-  <img id="modal-img" src="">
-</div>
+    let fotos = [];
+    let allImages = [];
 
-<!-- Face recognition -->
-<script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-
-<script>
-const gallery = document.getElementById('gallery');
-const modal = document.getElementById('modal');
-const modalImg = document.getElementById('modal-img');
-const downloadLink = document.getElementById('download');
-const uploadInput = document.getElementById('upload');
-const resetBtn = document.getElementById('reset');
-
-let fotos = [];
-let allImages = [];
-
-// Carregar lista de fotos
-async function carregarFotos() {
-const res = await fetch('/fotos.json');
-  fotos = await res.json();
-  montarGaleria(fotos);
-}
-
-function montarGaleria(lista) {
-  gallery.innerHTML = '';
-  lista.forEach(item => {
-    const img = document.createElement('img');
-    img.src = item.thumb; // usa miniatura
-    img.alt = item.alt;
-    img.dataset.full = item.src;
-    gallery.appendChild(img);
-  });
-  allImages = [...gallery.querySelectorAll('img')];
-}
-
-gallery.addEventListener('click', e => {
-  if (e.target.tagName === 'IMG') {
-    modal.style.display = 'flex';
-    modalImg.src = e.target.dataset.full;
-    downloadLink.href = e.target.dataset.full;
-  }
-});
-
-modal.addEventListener('click', e => {
-  if (e.target !== modalImg) modal.style.display = 'none';
-});
-
-resetBtn.onclick = () => montarGaleria(fotos);
-
-// 🧠 Reconhecimento facial
-Promise.all([
-  faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights'),
-  faceapi.nets.faceRecognitionNet.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights'),
-  faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights')
-]).then(() => console.log('Modelos carregados.'));
-
-uploadInput.addEventListener('change', async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const selfie = await faceapi.bufferToImage(file);
-  const detections = await faceapi.detectSingleFace(selfie).withFaceLandmarks().withFaceDescriptor();
-  if (!detections) {
-    alert('Nenhum rosto detectado na selfie.');
-    return;
-  }
-
-  const faceMatcher = new faceapi.FaceMatcher(detections);
-
-  const matched = [];
-  for (const item of fotos) {
-    const img = await faceapi.fetchImage(item.src);
-    const det = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
-    if (det && faceMatcher.findBestMatch(det.descriptor).distance < 0.45) {
-      matched.push(item);
+    async function carregarFotos() {
+      try {
+        const res = await fetch('/fotos.json');
+        if (!res.ok) throw new Error('Erro ao carregar fotos.json');
+        fotos = await res.json();
+        montarGaleria(fotos);
+      } catch (err) {
+        console.error('❌ Falha ao carregar fotos:', err);
+        gallery.innerHTML = '<p>Erro ao carregar galeria.</p>';
+      }
     }
-  }
 
-  if (matched.length > 0) {
-    montarGaleria(matched);
-  } else {
-    alert('Nenhuma correspondência encontrada.');
-  }
-});
+    function montarGaleria(lista) {
+      gallery.innerHTML = '';
+      lista.forEach(item => {
+        const img = document.createElement('img');
+        img.src = item.thumb.startsWith('/') ? item.thumb : `/${item.thumb}`;
+        img.dataset.full = item.src.startsWith('/') ? item.src : `/${item.src}`;
+        img.alt = item.alt || '';
+        gallery.appendChild(img);
+      });
+      allImages = [...gallery.querySelectorAll('img')];
+    }
 
-carregarFotos();
-</script>
+    // Evento para abrir imagem no modal
+    gallery.addEventListener('click', e => {
+      if (e.target.tagName === 'IMG') {
+        modal.style.display = 'flex';
+        modalImg.src = e.target.dataset.full;
+      }
+    });
 
+    // Fechar modal ao clicar fora
+    modal.addEventListener('click', e => {
+      if (e.target !== modalImg) modal.style.display = 'none';
+    });
+
+    // Inicializar galeria
+    carregarFotos();
+  </script>
 </body>
 </html>
