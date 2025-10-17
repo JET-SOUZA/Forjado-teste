@@ -1,8 +1,5 @@
 {
-  "routes": [
-    {
-      "src": "/fotos/(.*)",
-      "dest": "/fotos/$1"
-    }
+  "rewrites": [
+    { "source": "/fotos/(.*)", "destination": "/fotos/$1" }
   ]
 }
