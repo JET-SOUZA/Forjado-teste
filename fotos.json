@@ -1,72 +1,72 @@
 [
   {
-    "src": "fotos/C723B725-5572-42D1-9FCF-D82BBAD7149A.jpg",
-    "thumb": "fotos/thumbs/C723B725-5572-42D1-9FCF-D82BBAD7149A.jpg",
+    "src": "api/fotos?file=C723B725-5572-42D1-9FCF-D82BBAD7149A.jpg",
+    "thumb": "api/fotos?file=thumbs/C723B725-5572-42D1-9FCF-D82BBAD7149A.jpg",
     "alt": "C723B725-5572-42D1-9FCF-D82BBAD7149A.jpg"
   },
   {
-    "src": "fotos/IMG_0637.jpg",
-    "thumb": "fotos/thumbs/IMG_0637.jpg",
+    "src": "api/fotos?file=IMG_0637.jpg",
+    "thumb": "api/fotos?file=thumbs/IMG_0637.jpg",
     "alt": "IMG_0637.jpg"
   },
   {
-    "src": "fotos/IMG_0638.jpg",
-    "thumb": "fotos/thumbs/IMG_0638.jpg",
+    "src": "api/fotos?file=IMG_0638.jpg",
+    "thumb": "api/fotos?file=thumbs/IMG_0638.jpg",
     "alt": "IMG_0638.jpg"
   },
   {
-    "src": "fotos/IMG_0640.jpg",
-    "thumb": "fotos/thumbs/IMG_0640.jpg",
+    "src": "api/fotos?file=IMG_0640.jpg",
+    "thumb": "api/fotos?file=thumbs/IMG_0640.jpg",
     "alt": "IMG_0640.jpg"
   },
   {
-    "src": "fotos/IMG_0641.jpg",
-    "thumb": "fotos/thumbs/IMG_0641.jpg",
+    "src": "api/fotos?file=IMG_0641.jpg",
+    "thumb": "api/fotos?file=thumbs/IMG_0641.jpg",
     "alt": "IMG_0641.jpg"
   },
   {
-    "src": "fotos/IMG_0642.jpg",
-    "thumb": "fotos/thumbs/IMG_0642.jpg",
+    "src": "api/fotos?file=IMG_0642.jpg",
+    "thumb": "api/fotos?file=thumbs/IMG_0642.jpg",
     "alt": "IMG_0642.jpg"
   },
   {
-    "src": "fotos/IMG_0643.jpg",
-    "thumb": "fotos/thumbs/IMG_0643.jpg",
+    "src": "api/fotos?file=IMG_0643.jpg",
+    "thumb": "api/fotos?file=thumbs/IMG_0643.jpg",
     "alt": "IMG_0643.jpg"
   },
   {
-    "src": "fotos/IMG_0644.jpg",
-    "thumb": "fotos/thumbs/IMG_0644.jpg",
+    "src": "api/fotos?file=IMG_0644.jpg",
+    "thumb": "api/fotos?file=thumbs/IMG_0644.jpg",
     "alt": "IMG_0644.jpg"
   },
   {
-    "src": "fotos/IMG_0645.jpg",
-    "thumb": "fotos/thumbs/IMG_0645.jpg",
+    "src": "api/fotos?file=IMG_0645.jpg",
+    "thumb": "api/fotos?file=thumbs/IMG_0645.jpg",
     "alt": "IMG_0645.jpg"
   },
   {
-    "src": "fotos/IMG_0646.jpg",
-    "thumb": "fotos/thumbs/IMG_0646.jpg",
+    "src": "api/fotos?file=IMG_0646.jpg",
+    "thumb": "api/fotos?file=thumbs/IMG_0646.jpg",
     "alt": "IMG_0646.jpg"
   },
   {
-    "src": "fotos/IMG_0647.jpg",
-    "thumb": "fotos/thumbs/IMG_0647.jpg",
+    "src": "api/fotos?file=IMG_0647.jpg",
+    "thumb": "api/fotos?file=thumbs/IMG_0647.jpg",
     "alt": "IMG_0647.jpg"
   },
   {
-    "src": "fotos/IMG_0648.jpg",
-    "thumb": "fotos/thumbs/IMG_0648.jpg",
+    "src": "api/fotos?file=IMG_0648.jpg",
+    "thumb": "api/fotos?file=thumbs/IMG_0648.jpg",
     "alt": "IMG_0648.jpg"
   },
   {
-    "src": "fotos/IMG_0649.jpg",
-    "thumb": "fotos/thumbs/IMG_0649.jpg",
+    "src": "api/fotos?file=IMG_0649.jpg",
+    "thumb": "api/fotos?file=thumbs/IMG_0649.jpg",
     "alt": "IMG_0649.jpg"
   },
   {
-    "src": "fotos/b2f08115-7dae-4e97-80e4-aaf82e783.jpg",
-    "thumb": "fotos/thumbs/b2f08115-7dae-4e97-80e4-aaf82e783.jpg",
+    "src": "api/fotos?file=b2f08115-7dae-4e97-80e4-aaf82e783.jpg",
+    "thumb": "api/fotos?file=thumbs/b2f08115-7dae-4e97-80e4-aaf82e783.jpg",
     "alt": "b2f08115-7dae-4e97-80e4-aaf82e783.jpg"
   }
 ]
